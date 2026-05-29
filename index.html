@@ -67,7 +67,7 @@
       {id:'t3', title:'Topic Three', body:'Placeholder body copy for the third topic. Replace later.', icon:'cursor'},
       {id:'t4', title:'Topic Four',  body:'Placeholder body copy for the fourth topic. Replace later.', icon:'gem'},
       {id:'t5', title:'Topic Five',  body:'Placeholder body copy for the fifth topic. Replace later.', icon:'signal'},
-      {id:'t6', title:'Topic Six',   body:'Placeholder body copy for the sixth topic. Replace later.', icon:'mic'},
+      {id:'t6', title:'Topic Six',   body:'Placeholder body copy for the sixth topic. Replace later.', icon:'shield'},
     ];
     const ICONS = {
       mic:'<path d="M12 3a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm6 8a6 6 0 0 1-12 0M12 17v4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
@@ -75,6 +75,7 @@
       cursor:'<path d="M5 3l14 7-6 2-2 6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
       gem:'<path d="M6 4h12l3 5-9 11L3 9z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
       signal:'<circle cx="12" cy="12" r="2.4" fill="currentColor"/><path d="M7 7a7 7 0 0 0 0 10M17 7a7 7 0 0 1 0 10" fill="none" stroke="currentColor" stroke-width="1.6"/>',
+      shield:'<path d="M12 3l7 3v5c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
     };
     // ---- Arch geometry: concave curve, belly pointing left toward the head ----
     // Nodes live in the right zone (~60-80% of width in SVG 1000-unit space).
@@ -137,19 +138,25 @@
       toTx((x-0.5)*24);                           // subtle slide px
     }
 
-    gsap.ticker.add(()=>{
-      const target = state.t * duration;
-      if(Math.abs(target-lastSeek) > 0.012){      // avoid stacking seeks (~1/3 frame)
-        vid.currentTime = target; lastSeek = target;
-      }
-      personEl.style.transform = `translateX(${state.tx}px) rotateY(${state.rx}deg)`;
-    });
-
+    // Mouse-driven scrubbing only runs for fine pointers with motion allowed.
+    // The ticker is the scrub actuator, so it is gated here (not added globally)
+    // — touch/reduced-motion users never pay for it and it can't fight their pose.
     const finePointer = window.matchMedia('(pointer:fine)').matches;
-    if(finePointer){
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const interactive = finePointer && !reduceMotion;
+
+    if(interactive){
+      gsap.ticker.add(()=>{
+        const target = state.t * duration;
+        if(Math.abs(target-lastSeek) > 0.012){    // avoid stacking seeks (~1/3 frame)
+          vid.currentTime = target; lastSeek = target;
+        }
+        // perspective() must live inside the transform to give rotateY real depth
+        personEl.style.transform =
+          `perspective(1200px) translateX(${state.tx}px) rotateY(${state.rx}deg)`;
+      });
       vid.addEventListener('loadeddata', ()=>{ vid.currentTime = 0.5*duration; });
       window.addEventListener('mousemove', onMove, {passive:true});
-      personEl.style.perspective='1200px';
     }
 
     // ---- Reveal engine ----
@@ -176,20 +183,15 @@
     });
 
     // ---- Capability fallbacks ----
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
     if(!finePointer){
       // touch / no mouse: gentle auto-loop so the person feels alive; tap toggles cards
-      vid.loop = true; vid.setAttribute('autoplay','');
+      vid.loop = true;
       vid.play().catch(()=>{ vid.currentTime = 0.5*duration; });
       document.querySelectorAll('.node').forEach(node=>{
         node.addEventListener('click', ()=> openNode===node ? closeCard(node) : openCard(node));
       });
-    }
-
-    if(reduceMotion){
-      // neutral pose, no scrub easing, instant reveals
-      window.removeEventListener('mousemove', onMove);
+    } else if(reduceMotion){
+      // fine pointer but reduced motion: hold a neutral pose, no scrubbing
       vid.addEventListener('loadeddata', ()=>{ vid.currentTime = 0.5*duration; });
     }
   </script>

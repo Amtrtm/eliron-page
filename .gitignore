@@ -7,3 +7,10 @@ smoke-*.png
 # Temp / build noise
 *.tmp
 elbitpreview/
+
+# Loose source/generation artifacts at repo root (not part of the deliverable;
+# the only tracked media lives under assets/). Keep history free of large blobs.
+/*.jpg
+/*.png
+/grok-video-*.mp4
+!assets/**
