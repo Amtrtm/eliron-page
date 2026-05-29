@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Elbit Systems</title>
+<style>
+  :root{
+    --navy:#1B2A4A; --gold:#F2B705; --ink:#1d1d1f;
+    --muted:#6e6e73; --hair:#e5e5ea; --bg:#ffffff;
+    --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--font);
+    -webkit-font-smoothing:antialiased;overflow:hidden}
+  .stage{position:relative;width:100vw;height:100vh;overflow:hidden}
+  .logo-top{position:absolute;top:28px;left:50%;transform:translateX(-50%);width:170px;z-index:5}
+  .person{position:absolute;left:-6vw;bottom:0;height:100vh;max-width:62vw;z-index:2;
+    will-change:transform;pointer-events:none;overflow:hidden}
+  .person video{height:100%;width:auto;object-fit:cover;display:block;
+    -webkit-mask:radial-gradient(120% 90% at 60% 45%,#000 60%,transparent 78%);
+            mask:radial-gradient(120% 90% at 60% 45%,#000 60%,transparent 78%)}
+  .arch{position:absolute;inset:0;z-index:3;pointer-events:none}
+  .arch svg{position:absolute;inset:0;width:100%;height:100%}
+  .topics{position:absolute;inset:0;z-index:4}
+
+  /* Node styles */
+  .node{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;
+    gap:14px;cursor:pointer;pointer-events:auto}
+  .node-icon{flex:none;width:54px;height:54px;border-radius:50%;background:#fff;
+    border:1px solid var(--hair);display:grid;place-items:center;color:var(--navy);
+    box-shadow:0 6px 20px rgba(20,30,60,.06);transition:transform .35s,box-shadow .35s,border-color .35s}
+  .node-card{max-width:0;overflow:hidden;opacity:0;background:#fff;border-radius:16px;
+    border:1px solid transparent;padding:0;will-change:max-width,opacity}
+  .node-card h3{font-size:17px;color:var(--navy);margin-bottom:6px;white-space:nowrap}
+  .node-card p{font-size:14px;line-height:1.5;color:var(--muted);max-width:300px}
+  .node:hover .node-icon,.node:focus-visible .node-icon{transform:scale(1.08);
+    border-color:var(--gold);box-shadow:0 10px 28px rgba(20,30,60,.12)}
+</style>
+</head>
+<body>
+  <main class="stage" id="stage">
+    <img class="logo-top" src="assets/elbit-logo.svg" alt="Elbit Systems">
+    <div class="person" id="person">
+      <video id="vid" src="assets/person.mp4" muted playsinline preload="auto"></video>
+    </div>
+    <div class="arch"><svg id="archSvg" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+      <path id="archPath" fill="none" stroke="#d8dbe2" stroke-width="1.2"/>
+    </svg></div>
+    <div class="topics" id="topics"></div>
+  </main>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"
+          integrity="sha384-g4NTh/Iv5PPU4xPyhEWqPcwtNXOvdaDI8LLnyYfyNZOjKJeYQyjzQ9X5275eBjpt" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script>
+    // ---- Content model (swap real copy/icons here later) ----
+    const TOPICS = [
+      {id:'t1', title:'Topic One',   body:'Placeholder body copy for the first topic. Replace later.', icon:'mic'},
+      {id:'t2', title:'Topic Two',   body:'Placeholder body copy for the second topic. Replace later.', icon:'battery'},
+      {id:'t3', title:'Topic Three', body:'Placeholder body copy for the third topic. Replace later.', icon:'cursor'},
+      {id:'t4', title:'Topic Four',  body:'Placeholder body copy for the fourth topic. Replace later.', icon:'gem'},
+      {id:'t5', title:'Topic Five',  body:'Placeholder body copy for the fifth topic. Replace later.', icon:'signal'},
+      {id:'t6', title:'Topic Six',   body:'Placeholder body copy for the sixth topic. Replace later.', icon:'mic'},
+    ];
+    const ICONS = {
+      mic:'<path d="M12 3a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm6 8a6 6 0 0 1-12 0M12 17v4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+      battery:'<rect x="3" y="8" width="16" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="20" y="10" width="2" height="4" rx="1" fill="currentColor"/>',
+      cursor:'<path d="M5 3l14 7-6 2-2 6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
+      gem:'<path d="M6 4h12l3 5-9 11L3 9z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
+      signal:'<circle cx="12" cy="12" r="2.4" fill="currentColor"/><path d="M7 7a7 7 0 0 0 0 10M17 7a7 7 0 0 1 0 10" fill="none" stroke="currentColor" stroke-width="1.6"/>',
+    };
+    // ---- Arch geometry: concave curve, belly pointing left toward the head ----
+    // Nodes live in the right zone (~60-80% of width in SVG 1000-unit space).
+    // Top and bottom anchor further right; control point bows belly left.
+    function archPoint(t){
+      const topX=800, botX=760;
+      const ctrlX=600, ctrlY=500;
+      const topY=110,  botY=880;
+      const x=(1-t)*(1-t)*topX + 2*(1-t)*t*ctrlX + t*t*botX;
+      const y=(1-t)*(1-t)*topY + 2*(1-t)*t*ctrlY + t*t*botY;
+      return {x,y};
+    }
+    (function drawArch(){
+      const pts = TOPICS.map((_,i)=>archPoint(i/(TOPICS.length-1)));
+      let d = `M ${pts[0].x} ${pts[0].y}`;
+      for(let i=1;i<pts.length;i++){
+        const p0=pts[i-1], p1=pts[i];
+        const mx=(p0.x+p1.x)/2;
+        d += ` Q ${mx} ${p0.y} ${p1.x} ${p1.y}`;
+      }
+      document.getElementById('archPath').setAttribute('d', d);
+    })();
+    const topicsEl = document.getElementById('topics');
+    TOPICS.forEach((t,i)=>{
+      const p = archPoint(i/(TOPICS.length-1));
+      const node = document.createElement('div');
+      node.className='node';
+      node.dataset.id=t.id;
+      node.tabIndex=0;
+      node.style.left = (p.x/1000*100)+'%';
+      node.style.top  = (p.y/1000*100)+'%';
+      node.innerHTML = `
+        <div class="node-icon"><svg viewBox="0 0 24 24" width="22" height="22">${ICONS[t.icon]||''}</svg></div>
+        <div class="node-card">
+          <h3>${t.title}</h3>
+          <p>${t.body}</p>
+        </div>`;
+      topicsEl.appendChild(node);
+    });
+
+    // Auto-play video
+    const vid = document.getElementById('vid');
+    vid.play().catch(()=>{});
+  </script>
+</body>
+</html>
