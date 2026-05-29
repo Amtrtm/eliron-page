@@ -1,9 +1,12 @@
 # Elbit Systems — Interactive Landing Page
 
+[![Live Demo](https://img.shields.io/badge/live%20demo-amtrtm.github.io%2Feliron--page-2B9348.svg)](https://amtrtm.github.io/eliron-page/)
 [![Tech](https://img.shields.io/badge/tech-HTML5-E34F26.svg)](https://developer.mozilla.org/docs/Web/HTML)
 [![Animation](https://img.shields.io/badge/GSAP-3.12.5-88CE02.svg)](https://gsap.com/)
 [![Type](https://img.shields.io/badge/project-Landing%20Page-1B2A4A.svg)](#)
 [![Platform](https://img.shields.io/badge/platform-Web-blue.svg)](#)
+
+**▶ Live demo:** https://amtrtm.github.io/eliron-page/ — move your mouse over the page; the person's head follows the cursor and the topics reveal on hover.
 
 A single-file, self-contained interactive landing page. A person video reacts to the
 cursor — moving the mouse up/down scrubs the video frame (head looks up/down) and moving
@@ -78,3 +81,8 @@ All topic content and icons live in `index.html`, near the top of the inline `<s
 
 The arch curve and node placement are derived automatically from the number of topics via
 the `archPoint(t)` function and the node-render loop, so the six nodes stay on the curve.
+
+> **For collaborators:** the quickest way to edit copy is to open `index.html` on GitHub,
+> click the pencil (✎) to edit in the browser, change the `title`/`body` strings in the
+> `TOPICS` array, and commit. GitHub Pages rebuilds the live demo automatically within a
+> minute or two.
