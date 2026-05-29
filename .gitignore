@@ -14,3 +14,6 @@ elbitpreview/
 /*.png
 /grok-video-*.mp4
 !assets/**
+
+# Unused source videos at root
+Eliron.mp4
