@@ -16,8 +16,7 @@
     -webkit-font-smoothing:antialiased;overflow:hidden}
   .stage{position:relative;width:100vw;height:100vh;overflow:hidden}
   .logo-top{position:absolute;top:28px;left:50%;transform:translateX(-50%);width:170px;z-index:5}
-  .logo-near{position:absolute;left:14vw;top:42%;width:150px;z-index:3;opacity:.95;pointer-events:none}
-  .person{position:absolute;left:-26vw;bottom:0;height:100vh;max-width:62vw;z-index:2;
+  .person{position:absolute;left:-36vw;bottom:0;height:100vh;max-width:62vw;z-index:2;
     will-change:transform;pointer-events:none;overflow:hidden}
   .person video{height:100%;width:auto;object-fit:cover;display:block;
     -webkit-mask:radial-gradient(120% 90% at 60% 45%,#000 60%,transparent 78%);
@@ -48,7 +47,6 @@
 <body>
   <main class="stage" id="stage">
     <img class="logo-top" src="assets/elbit-logo.svg" alt="Elbit Systems">
-    <img class="logo-near" src="assets/elbit-logo.svg" alt="">
     <div class="person" id="person">
       <video id="vid" src="assets/person.mp4" muted playsinline preload="auto"></video>
     </div>
