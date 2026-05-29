@@ -1,0 +1,9 @@
+# Playwright / preview artifacts
+.playwright-mcp/
+_frames/
+elbit-preview*.png
+smoke-*.png
+
+# Temp / build noise
+*.tmp
+elbitpreview/
