@@ -62,7 +62,7 @@ almost certainly not honoring Range requests for the video.
 ```
 index.html              # the entire page (HTML + CSS + JS inline)
 assets/person.mp4       # the person video (scrubbed by the cursor)
-assets/elbit-logo.svg   # Elbit Systems wordmark (top + near the person)
+assets/elbit-logo.png   # Elbit Systems logo (top-center)
 README.md
 ```
 
